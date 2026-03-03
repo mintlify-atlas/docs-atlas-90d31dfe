@@ -1,0 +1,116 @@
+{
+  "projectType": "saas",
+  "projectName": "DevAurva",
+  "projectDescription": "Modern web development and SaaS solutions platform serving startups to enterprises with custom websites, applications, and flexible pricing.",
+  "theme": "almond",
+  "primaryColor": "#3B82F6",
+  "lightColor": "#60A5FA",
+  "darkColor": "#1E40AF",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "features-overview"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "services/pricing-plans",
+              "services/custom-plan-builder",
+              "services/quick-services",
+              "services/website-types"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/core-features",
+              "features/design-ui",
+              "features/functionality",
+              "features/advanced-features",
+              "features/hosting-solutions"
+            ]
+          },
+          {
+            "group": "Projects",
+            "pages": [
+              "projects/portfolio",
+              "projects/case-studies"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/overview",
+              "api/contact",
+              "api/custom-plan",
+              "api/card-plan"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "api/models/custom-plan",
+              "api/models/card-plan"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Deployment",
+        "groups": [
+          {
+            "group": "Setup",
+            "pages": [
+              "deployment/environment-setup",
+              "deployment/database-configuration",
+              "deployment/email-setup"
+            ]
+          },
+          {
+            "group": "Going Live",
+            "pages": [
+              "deployment/production-deployment",
+              "deployment/vercel-deployment"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Custom pricing plan builder with real-time calculation",
+    "Multi-tier pricing (Budget, Business, Professional, Custom)",
+    "Contact form and lead capture system",
+    "Email notifications via Nodemailer",
+    "MongoDB database integration for plan requests",
+    "Responsive React frontend with Framer Motion animations",
+    "Express backend API with CORS support",
+    "Flexible feature selection across 7 categories",
+    "Website type templates (E-commerce, Blog, SaaS, Portfolio, etc.)",
+    "Quick services (Email setup, Hosting, SEO, Social Media)"
+  ],
+  "publicApiSurface": [
+    "POST /api/contact - Submit contact form",
+    "POST /api/custom-plan - Submit custom plan request",
+    "POST /api/card-plan - Submit pricing card plan request",
+    "CustomPlan model - Store custom plan requests",
+    "CardPlan model - Store card-based plan requests",
+    "featureCategories - 7 categories with 30+ features",
+    "pricingPlans - 4 pricing tiers",
+    "websiteTypes - 7 website type templates",
+    "quickServices - 4 quick service offerings"
+  ]
+}
