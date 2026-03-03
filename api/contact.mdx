@@ -1,0 +1,96 @@
+---
+title: 'Contact Form'
+description: 'Submit contact form messages via the API'
+---
+
+## POST /api/contact
+
+Submit a contact form message. This endpoint sends an email notification to the configured recipient with the user's contact details and message.
+
+### Request Body
+
+<ParamField path="firstName" type="string" required>
+  The name of the person submitting the contact form
+</ParamField>
+
+<ParamField path="email" type="string" required>
+  The email address of the person submitting the form
+</ParamField>
+
+<ParamField path="message" type="string" required>
+  The message content from the user
+</ParamField>
+
+### Response
+
+<ResponseField name="code" type="number">
+  HTTP status code (200 for success, 500 for error)
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Response message indicating the result of the operation
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl -X POST http://localhost:3001/api/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "John Doe",
+    "email": "john.doe@example.com",
+    "message": "I would like to inquire about your web development services."
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:3001/api/contact', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    firstName: 'John Doe',
+    email: 'john.doe@example.com',
+    message: 'I would like to inquire about your web development services.'
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+### Success Response
+
+```json
+{
+  "code": 200,
+  "message": "Message sent successfully"
+}
+```
+
+### Error Response
+
+```json
+{
+  "code": 500,
+  "message": "Error processing your request"
+}
+```
+
+## Email Notification
+
+When a contact form is submitted, an email is sent to the configured recipient (`EMAIL_RECIPIENT` or `EMAIL_USER`) containing:
+
+- **Subject**: "New Contact Form Message from [firstName]"
+- **Name**: The submitted firstName
+- **Email**: The submitted email address
+- **Message**: The full message content
+
+The email is formatted in both plain text and HTML for compatibility with different email clients.
+
+## Notes
+
+- Contact form submissions are **not** stored in the database
+- Only email notifications are sent
+- All three fields (firstName, email, message) are required for submission

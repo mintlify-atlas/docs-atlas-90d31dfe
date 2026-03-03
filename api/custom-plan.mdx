@@ -1,0 +1,182 @@
+---
+title: 'Custom Plan Request'
+description: 'Submit custom website plan requests with selected features'
+---
+
+## POST /api/custom-plan
+
+Submit a custom website plan request with user-selected features. This endpoint saves the request to MongoDB and sends an email notification with all details including the selected features breakdown.
+
+### Request Body
+
+<ParamField path="name" type="string" required>
+  The full name of the person requesting the custom plan
+</ParamField>
+
+<ParamField path="email" type="string" required>
+  The email address for contact
+</ParamField>
+
+<ParamField path="phone" type="string" required>
+  The phone number for contact
+</ParamField>
+
+<ParamField path="companyName" type="string">
+  The company name (optional)
+</ParamField>
+
+<ParamField path="selectedFeatures" type="array" required>
+  An array of feature objects that the user has selected. Each feature object should contain:
+  - `name` (string): Feature name
+  - `price` (number): Feature price
+  - `description` (string, optional): Feature description
+</ParamField>
+
+<ParamField path="additionalNotes" type="string">
+  Any additional notes or requirements (optional)
+</ParamField>
+
+<ParamField path="websiteType" type="string">
+  The type of website being requested. Defaults to "Custom" if not provided
+</ParamField>
+
+<ParamField path="totalPrice" type="number" required>
+  The total price calculated from all selected features
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Success message confirming the request submission
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error message if the request fails (only present on error)
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl -X POST http://localhost:3001/api/custom-plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Smith",
+    "email": "jane.smith@company.com",
+    "phone": "+1234567890",
+    "companyName": "Tech Solutions Inc",
+    "selectedFeatures": [
+      {
+        "name": "Responsive Design",
+        "price": 5000,
+        "description": "Mobile-first responsive design"
+      },
+      {
+        "name": "E-commerce Integration",
+        "price": 8000,
+        "description": "Full shopping cart functionality"
+      },
+      {
+        "name": "SEO Optimization",
+        "price": 3000,
+        "description": "On-page and technical SEO"
+      }
+    ],
+    "additionalNotes": "Need this completed within 3 months",
+    "websiteType": "E-commerce",
+    "totalPrice": 16000
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:3001/api/custom-plan', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Jane Smith',
+    email: 'jane.smith@company.com',
+    phone: '+1234567890',
+    companyName: 'Tech Solutions Inc',
+    selectedFeatures: [
+      {
+        name: 'Responsive Design',
+        price: 5000,
+        description: 'Mobile-first responsive design'
+      },
+      {
+        name: 'E-commerce Integration',
+        price: 8000,
+        description: 'Full shopping cart functionality'
+      },
+      {
+        name: 'SEO Optimization',
+        price: 3000,
+        description: 'On-page and technical SEO'
+      }
+    ],
+    additionalNotes: 'Need this completed within 3 months',
+    websiteType: 'E-commerce',
+    totalPrice: 16000
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+### Success Response
+
+```json
+{
+  "message": "Custom plan request submitted successfully"
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Failed to process custom plan request"
+}
+```
+
+## Email Notification
+
+When a custom plan request is submitted, an email is sent to the configured recipient containing:
+
+- **Subject**: "New Custom Plan Request from [name]"
+- **Name**: The submitted name
+- **Email**: The submitted email address
+- **Phone**: The submitted phone number
+- **Company**: The company name (or "Not provided" if empty)
+- **Website Type**: The type of website (or "Custom" if not specified)
+- **Total Price**: Formatted as R[amount] with thousands separator
+- **Selected Features**: A formatted list showing:
+  - Feature name and price
+  - Feature description (if provided)
+- **Additional Notes**: Any additional notes (if provided)
+
+## Data Storage
+
+The custom plan request is saved to MongoDB with the following schema:
+
+```javascript
+{
+  name: String (required),
+  email: String (required),
+  phone: String (required),
+  companyName: String (optional),
+  websiteType: String (required),
+  features: Array of objects with {id, name, price, category},
+  totalPrice: Number (required),
+  date: Date (auto-generated)
+}
+```
+
+## Notes
+
+- The `websiteType` field defaults to "Custom" if not provided in the request
+- The `selectedFeatures` array can contain any number of feature objects
+- Prices are displayed in South African Rand (R) in email notifications
+- The request is saved to MongoDB before sending the email notification

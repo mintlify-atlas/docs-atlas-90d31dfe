@@ -1,0 +1,638 @@
+---
+title: 'Vercel Deployment Guide'
+description: 'Step-by-step guide for deploying DevAurva to Vercel platform'
+---
+
+## Overview
+
+Vercel is the recommended platform for deploying DevAurva. It provides seamless deployment for both the React frontend and serverless API functions with zero configuration.
+
+## Why Vercel?
+
+- **Automatic CI/CD**: Deploy on every push to your repository
+- **Serverless Functions**: Native support for API routes
+- **Edge Network**: Global CDN for fast content delivery
+- **Preview Deployments**: Automatic preview URLs for pull requests
+- **Environment Variables**: Secure management of secrets
+- **Zero Configuration**: Works out of the box with Vite
+
+## Prerequisites
+
+Before deploying to Vercel:
+
+- Vercel account (sign up at [vercel.com](https://vercel.com))
+- Git repository (GitHub, GitLab, or Bitbucket)
+- MongoDB database (MongoDB Atlas recommended)
+- Gmail account with app-specific password
+- Vercel CLI (optional, for command-line deployment)
+
+## Vercel Configuration
+
+DevAurva includes a `vercel.json` configuration file:
+
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist",
+        "buildCommand": "npm run build"
+      }
+    },
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
+    },
+    {
+      "src": "^/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*)\\.(.+)$",
+      "dest": "/$1.$2"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
+```
+
+### Configuration Breakdown
+
+**Builds**:
+- **Static Build**: Builds the React frontend using Vite
+  - Output directory: `dist/`
+  - Build command: `npm run build`
+- **Serverless Functions**: Deploys all `api/*.js` files as serverless functions
+
+**Routes**:
+- API routes (`/api/*`) map to serverless functions
+- Asset files are served directly
+- All other routes fall back to `index.html` for client-side routing
+
+<Note>
+  The configuration enables Single Page Application (SPA) routing by redirecting all non-asset routes to `index.html`, allowing React Router to handle navigation.
+</Note>
+
+## Deployment Methods
+
+### Method 1: Deploy via Vercel Dashboard (Recommended)
+
+<Steps>
+  <Step title="Create Vercel Account">
+    1. Visit [vercel.com](https://vercel.com)
+    2. Sign up with GitHub, GitLab, or Bitbucket
+    3. Authorize Vercel to access your repositories
+  </Step>
+
+  <Step title="Import Project">
+    1. Click "Add New" → "Project"
+    2. Select your DevAurva repository
+    3. Click "Import"
+  </Step>
+
+  <Step title="Configure Project">
+    Vercel will automatically detect the project settings:
+    - **Framework Preset**: Vite
+    - **Build Command**: `npm run build`
+    - **Output Directory**: `dist`
+    - **Install Command**: `npm install`
+
+    Leave these as detected (no changes needed).
+  </Step>
+
+  <Step title="Add Environment Variables">
+    Before deploying, add required environment variables:
+
+    1. Click "Environment Variables"
+    2. Add each variable:
+       - `MONGODB_URI`: Your MongoDB connection string
+       - `EMAIL_USER`: Gmail address for SMTP
+       - `EMAIL_PASS`: Gmail app-specific password
+       - `EMAIL_RECIPIENT`: Email to receive form submissions
+    3. Select environment: Production, Preview, or Development
+  </Step>
+
+  <Step title="Deploy">
+    1. Click "Deploy"
+    2. Wait for build to complete (usually 1-3 minutes)
+    3. Vercel will provide a deployment URL
+  </Step>
+
+  <Step title="Verify Deployment">
+    1. Visit the deployment URL
+    2. Test the contact form
+    3. Submit a custom plan request
+    4. Check that emails are received
+    5. Verify MongoDB data is saved
+  </Step>
+</Steps>
+
+### Method 2: Deploy via Vercel CLI
+
+For developers who prefer command-line deployment:
+
+<Steps>
+  <Step title="Install Vercel CLI">
+    ```bash
+    npm install -g vercel
+    ```
+  </Step>
+
+  <Step title="Login to Vercel">
+    ```bash
+    vercel login
+    ```
+    Follow the authentication prompts.
+  </Step>
+
+  <Step title="Add Environment Variables">
+    ```bash
+    vercel env add MONGODB_URI production
+    vercel env add EMAIL_USER production
+    vercel env add EMAIL_PASS production
+    vercel env add EMAIL_RECIPIENT production
+    ```
+    Enter the value when prompted for each variable.
+  </Step>
+
+  <Step title="Deploy to Production">
+    From your project directory:
+    ```bash
+    vercel --prod
+    ```
+
+    For preview deployment:
+    ```bash
+    vercel
+    ```
+  </Step>
+
+  <Step title="View Deployment">
+    ```bash
+    vercel ls
+    ```
+    This lists all deployments with their URLs.
+  </Step>
+</Steps>
+
+<Note>
+  The first time you run `vercel`, it will ask questions about project setup. You can accept the defaults, as `vercel.json` already contains the configuration.
+</Note>
+
+### Method 3: Deploy via Git Integration (Automatic)
+
+Once connected, Vercel automatically deploys:
+
+- **Production**: Every push to `main` branch
+- **Preview**: Every push to other branches or pull requests
+
+<Steps>
+  <Step title="Connect Repository">
+    Complete Method 1 (Dashboard deployment) to connect your repository.
+  </Step>
+
+  <Step title="Push to Deploy">
+    ```bash
+    git add .
+    git commit -m "Your commit message"
+    git push origin main
+    ```
+    Vercel automatically detects the push and starts deployment.
+  </Step>
+
+  <Step title="Monitor Deployment">
+    1. Visit your Vercel dashboard
+    2. View real-time build logs
+    3. See deployment status and preview URL
+  </Step>
+</Steps>
+
+## Environment Variables Management
+
+### Adding Variables via Dashboard
+
+1. Navigate to your project in Vercel
+2. Go to **Settings** → **Environment Variables**
+3. Add new variable:
+   - **Key**: Variable name (e.g., `MONGODB_URI`)
+   - **Value**: Variable value
+   - **Environment**: Select Production, Preview, or Development
+4. Click **Save**
+
+### Adding Variables via CLI
+
+```bash
+# Add production variable
+vercel env add MONGODB_URI production
+
+# Add preview variable
+vercel env add MONGODB_URI preview
+
+# Add development variable
+vercel env add MONGODB_URI development
+
+# List all variables
+vercel env ls
+
+# Remove a variable
+vercel env rm MONGODB_URI production
+```
+
+### Required Environment Variables
+
+<Warning>
+  **All variables must be set before deployment for the application to function correctly.**
+</Warning>
+
+| Variable | Description | Required For |
+|----------|-------------|-------------|
+| `MONGODB_URI` | MongoDB connection string | Custom plans, card plans |
+| `EMAIL_USER` | Gmail SMTP username | All email notifications |
+| `EMAIL_PASS` | Gmail app password | All email notifications |
+| `EMAIL_RECIPIENT` | Notification recipient | All email notifications |
+
+### Environment-Specific Variables
+
+- **Production**: Used for live site (`yoursite.vercel.app` or custom domain)
+- **Preview**: Used for branch and PR deployments
+- **Development**: Used locally with `vercel dev`
+
+<Note>
+  Set variables for all environments you plan to use. Preview environments are useful for testing with production-like settings.
+</Note>
+
+## Testing API Functions
+
+Vercel provides serverless function logs for debugging:
+
+### View Function Logs
+
+1. Go to your project dashboard
+2. Click **Deployments**
+3. Select a deployment
+4. Click **Functions** tab
+5. Select a function to view logs
+
+### Test API Endpoints
+
+```bash
+# Test contact form
+curl -X POST https://your-site.vercel.app/api/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Test",
+    "email": "test@example.com",
+    "message": "Test message"
+  }'
+
+# Test custom plan
+curl -X POST https://your-site.vercel.app/api/custom-plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test@example.com",
+    "phone": "1234567890",
+    "websiteType": "E-commerce",
+    "features": [{"name": "Feature 1", "price": 1000}],
+    "totalPrice": 1000
+  }'
+```
+
+### Local Development with Vercel
+
+Test serverless functions locally:
+
+```bash
+# Install dependencies
+npm install
+
+# Pull environment variables
+vercel env pull .env.local
+
+# Start Vercel dev server
+vercel dev
+```
+
+This runs your site at `http://localhost:3000` with serverless functions.
+
+<Note>
+  `vercel dev` simulates the Vercel production environment locally, including serverless functions and routing.
+</Note>
+
+## Custom Domain Setup
+
+<Steps>
+  <Step title="Navigate to Domains">
+    1. Go to your project in Vercel
+    2. Click **Settings** → **Domains**
+  </Step>
+
+  <Step title="Add Domain">
+    1. Enter your domain name (e.g., `devaurva.com`)
+    2. Click **Add**
+  </Step>
+
+  <Step title="Configure DNS">
+    Vercel provides DNS configuration instructions:
+
+    **Option A: Vercel Nameservers (Recommended)**
+    - Update nameservers at your domain registrar
+    - Vercel manages all DNS records
+
+    **Option B: Custom DNS**
+    - Add A record pointing to Vercel's IP
+    - Add CNAME record for `www` subdomain
+  </Step>
+
+  <Step title="Wait for Verification">
+    - DNS propagation takes 24-48 hours
+    - Vercel automatically provisions SSL certificate
+    - Once verified, your site is live on custom domain
+  </Step>
+</Steps>
+
+<Warning>
+  After adding a custom domain, update your CORS configuration in API functions to include the new domain.
+</Warning>
+
+## Automatic HTTPS
+
+Vercel automatically provides:
+- SSL certificate for your domain
+- Automatic HTTPS redirect
+- Certificate renewal
+
+No configuration needed!
+
+## Preview Deployments
+
+### What are Preview Deployments?
+
+Every branch and pull request gets a unique preview URL:
+- Test changes before merging
+- Share work with team members
+- Verify features in production-like environment
+
+### Using Preview Deployments
+
+<Steps>
+  <Step title="Create Branch">
+    ```bash
+    git checkout -b feature/new-feature
+    ```
+  </Step>
+
+  <Step title="Make Changes and Push">
+    ```bash
+    git add .
+    git commit -m "Add new feature"
+    git push origin feature/new-feature
+    ```
+  </Step>
+
+  <Step title="Get Preview URL">
+    - Vercel automatically deploys the branch
+    - Check GitHub PR for Vercel bot comment with preview URL
+    - Or view in Vercel dashboard under **Deployments**
+  </Step>
+
+  <Step title="Test Preview">
+    - Visit preview URL
+    - Test your changes
+    - Share URL with team for review
+  </Step>
+</Steps>
+
+<Note>
+  Preview deployments use Preview environment variables. Ensure sensitive data is protected and test databases are used for previews.
+</Note>
+
+## Rollback and Redeploy
+
+### Rollback to Previous Deployment
+
+<Steps>
+  <Step title="View Deployments">
+    1. Go to **Deployments** in your project
+    2. Find the working deployment
+  </Step>
+
+  <Step title="Promote to Production">
+    1. Click the three dots menu
+    2. Select **Promote to Production**
+    3. Confirm the rollback
+  </Step>
+</Steps>
+
+### Redeploy Current Version
+
+```bash
+# Via CLI
+vercel --prod --force
+
+# Via Dashboard
+# Click "Redeploy" on any deployment
+```
+
+## Monitoring and Analytics
+
+### Built-in Analytics
+
+Vercel provides:
+- Page views and unique visitors
+- Top pages and referrers
+- Device and browser statistics
+- Geographic distribution
+
+**Enable Analytics**:
+1. Go to **Analytics** in project settings
+2. Click **Enable**
+
+### Function Logs
+
+Monitor serverless functions:
+1. Go to **Deployments**
+2. Select a deployment
+3. Click **Functions** tab
+4. View real-time logs and errors
+
+### Runtime Logs
+
+View console logs from your API functions:
+```javascript
+console.log('Debug information');
+console.error('Error details');
+```
+
+Logs appear in the Functions tab of your deployment.
+
+## Performance Optimization
+
+### Edge Caching
+
+Vercel automatically caches static assets at the edge. No configuration needed.
+
+### Custom Cache Headers
+
+For API responses, add cache headers:
+
+```javascript
+res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+```
+
+### Image Optimization
+
+Use Vercel's Image Optimization:
+
+```jsx
+import Image from 'next/image';
+
+<Image src="/photo.jpg" width={500} height={300} alt="Photo" />
+```
+
+<Note>
+  Image optimization is available for Next.js projects. For Vite projects, optimize images before deployment.
+</Note>
+
+## Troubleshooting
+
+### Build Fails
+
+**Error**: "Build failed"
+
+**Solutions**:
+1. Check build logs in deployment details
+2. Verify `package.json` scripts are correct
+3. Ensure all dependencies are in `dependencies`, not `devDependencies`
+4. Test build locally: `npm run build`
+
+### Serverless Function Errors
+
+**Error**: "Function error 500"
+
+**Solutions**:
+1. Check function logs for detailed error
+2. Verify environment variables are set
+3. Test function locally with `vercel dev`
+4. Check MongoDB connection and credentials
+
+### CORS Issues
+
+**Error**: "CORS policy blocked"
+
+**Solutions**:
+1. Verify CORS headers in API functions
+2. Check that OPTIONS method is handled
+3. Test with curl to isolate frontend issues
+4. Review browser console for exact error
+
+### Environment Variables Not Working
+
+**Issue**: API functions can't access environment variables
+
+**Solutions**:
+1. Verify variables are set for correct environment (Production/Preview)
+2. Redeploy after adding variables
+3. Check variable names match exactly (case-sensitive)
+4. Use `vercel env ls` to list all variables
+
+### Database Connection Fails
+
+**Error**: "MongoError: connection timeout"
+
+**Solutions**:
+1. Verify MongoDB connection string is correct
+2. Whitelist Vercel's IP addresses in MongoDB Atlas
+3. Check database user has correct permissions
+4. Test connection string locally
+
+<Warning>
+  MongoDB Atlas requires IP whitelisting. For Vercel, whitelist `0.0.0.0/0` (all IPs) as Vercel uses dynamic IPs, or upgrade to Atlas M10+ for VPC peering.
+</Warning>
+
+## Vercel-Specific Features
+
+### Environment Variable Secrets
+
+Sensitive variables (like `EMAIL_PASS`) are automatically encrypted by Vercel and never exposed in logs.
+
+### Zero-Downtime Deployments
+
+Vercel routes traffic to new deployment only after successful build:
+- Old version continues serving requests
+- New version is built and tested
+- Traffic switches atomically
+- Zero downtime for users
+
+### Automatic Compression
+
+Vercel automatically compresses:
+- HTML, CSS, JavaScript
+- JSON responses
+- SVG images
+
+No configuration needed.
+
+### DDoS Protection
+
+Vercel provides built-in DDoS protection and rate limiting at the edge.
+
+## Cost Considerations
+
+Vercel's free (Hobby) plan includes:
+- Unlimited deployments
+- 100GB bandwidth per month
+- 100GB-hours serverless function execution
+- Automatic HTTPS
+- Preview deployments
+
+**Upgrade to Pro if you need**:
+- More bandwidth and function execution time
+- Team collaboration features
+- Advanced analytics
+- Faster builds
+
+<Note>
+  Monitor usage in **Settings** → **Usage** to avoid unexpected charges.
+</Note>
+
+## Best Practices
+
+1. **Use Preview Environments**: Test all changes in preview before merging
+2. **Monitor Function Logs**: Regularly check for errors and warnings
+3. **Set Up Alerts**: Use Vercel integrations for Slack/Discord notifications
+4. **Optimize Bundle Size**: Keep dependencies minimal to reduce cold start time
+5. **Use Edge Caching**: Configure cache headers appropriately
+6. **Secure Environment Variables**: Never expose secrets in frontend code
+7. **Test Locally**: Use `vercel dev` to catch issues before deployment
+8. **Regular Backups**: Back up MongoDB data regularly
+
+## Next Steps
+
+After deploying to Vercel:
+
+- Set up custom domain
+- Enable Vercel Analytics
+- Configure Web Vitals monitoring
+- Set up error tracking (Sentry integration)
+- Add Slack/Discord notifications for deployments
+- Implement automated testing in CI/CD
+
+## Additional Resources
+
+- [Vercel Documentation](https://vercel.com/docs)
+- [Serverless Functions Guide](https://vercel.com/docs/serverless-functions/introduction)
+- [Environment Variables](https://vercel.com/docs/environment-variables)
+- [Custom Domains](https://vercel.com/docs/custom-domains)

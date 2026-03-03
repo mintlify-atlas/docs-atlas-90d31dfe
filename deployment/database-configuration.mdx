@@ -1,0 +1,198 @@
+---
+title: Database Configuration
+description: Set up and configure MongoDB for DevAurva application data storage
+---
+
+## Overview
+
+DevAurva uses MongoDB with Mongoose ODM for data persistence. The application stores custom plan requests and card plan submissions in MongoDB collections.
+
+## Database Dependencies
+
+The following packages are used for database operations:
+
+- **mongoose** (v8.9.6) - MongoDB object modeling for Node.js
+- **mongodb** (v6.13.0) - Official MongoDB driver
+
+## MongoDB Connection Setup
+
+The MongoDB connection is established in `server.js:12-15` using Mongoose:
+
+```javascript
+import mongoose from 'mongoose';
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('MongoDB connection error:', err));
+```
+
+## Setting Up MongoDB
+
+<Steps>
+
+### Create a MongoDB Atlas account
+
+1. Visit [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Sign up for a free account
+3. Create a new cluster (free tier is sufficient for development)
+
+### Configure database access
+
+1. In the Atlas dashboard, go to **Database Access**
+2. Click **Add New Database User**
+3. Create a username and password
+4. Set user privileges to **Read and write to any database**
+5. Click **Add User**
+
+### Whitelist IP addresses
+
+1. Go to **Network Access** in the Atlas dashboard
+2. Click **Add IP Address**
+3. For development, you can click **Allow Access from Anywhere** (0.0.0.0/0)
+4. For production, add your server's specific IP address
+
+<Warning>
+Allowing access from anywhere (0.0.0.0/0) is convenient for development but not recommended for production. Always restrict access to specific IP addresses in production environments.
+</Warning>
+
+### Get your connection string
+
+1. Go to **Database** in the Atlas dashboard
+2. Click **Connect** on your cluster
+3. Select **Connect your application**
+4. Choose **Node.js** as the driver
+5. Copy the connection string
+
+### Add connection string to .env
+
+Add the MongoDB URI to your `.env` file:
+
+```bash
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/devaurva?retryWrites=true&w=majority
+```
+
+Replace:
+- `username` with your database username
+- `password` with your database password
+- `cluster.mongodb.net` with your actual cluster hostname
+- `devaurva` with your preferred database name
+
+</Steps>
+
+## Database Models
+
+DevAurva uses two primary MongoDB models:
+
+### CustomPlan Model
+
+Stores custom website plan requests with selected features (`server.js:6`):
+
+```javascript
+import CustomPlan from './server/models/CustomPlan.js';
+```
+
+**Stored Data:**
+- Client name, email, phone
+- Company name
+- Selected features with pricing
+- Website type
+- Total price
+- Additional notes
+
+### CardPlan Model
+
+Stores predefined plan selections (`server.js:7`):
+
+```javascript
+import CardPlan from './server/models/CardPlan.js';
+```
+
+**Stored Data:**
+- Client name, email, phone
+- Website type
+- Plan type (Starter/Professional/Enterprise)
+- Plan price
+- Budget information
+
+## Connection Configuration
+
+The application uses default Mongoose connection settings with:
+
+- **retryWrites=true** - Automatic retry for write operations
+- **w=majority** - Write concern ensuring data is written to majority of nodes
+
+## Testing the Database Connection
+
+<Steps>
+
+### Start the server
+
+```bash
+node server.js
+```
+
+### Verify connection
+
+You should see this output:
+
+```bash
+Connected to MongoDB
+Server running on port 3001
+```
+
+### Test data storage
+
+Submit a test form through your application to verify data is being saved:
+
+1. Fill out a contact form or plan request
+2. Submit the form
+3. Check your MongoDB Atlas dashboard under **Browse Collections**
+4. Verify the data appears in the appropriate collection
+
+</Steps>
+
+## Troubleshooting
+
+### Connection Errors
+
+If you see `MongoDB connection error` in the console:
+
+- Verify your `MONGODB_URI` is correctly formatted
+- Check that your IP address is whitelisted in Atlas
+- Ensure your database user credentials are correct
+- Verify your cluster is active and not paused
+
+### Authentication Failed
+
+If authentication fails:
+
+- Double-check your username and password in the connection string
+- Ensure special characters in passwords are URL-encoded
+- Verify the database user has proper permissions
+
+### Network Timeout
+
+If you experience timeout issues:
+
+- Check your network connectivity
+- Verify firewall settings aren't blocking MongoDB connections
+- Ensure your IP is whitelisted in Atlas Network Access
+
+<Warning>
+**Production Considerations:**
+
+- Use a dedicated production database (separate from development)
+- Enable MongoDB authentication and use strong passwords
+- Implement proper connection pooling
+- Set up monitoring and alerts for database performance
+- Regular backups are essential - configure automated backups in Atlas
+- Consider implementing indexes for frequently queried fields
+</Warning>
+
+## Next Steps
+
+- [Set up email notifications](/deployment/email-setup)
+- Configure additional database indexes for performance
+- Set up database backup strategies
+- Monitor database usage and optimize queries

@@ -1,0 +1,172 @@
+---
+title: 'Card Plan Request'
+description: 'Submit predefined plan requests (Budget, Business, or Professional)'
+---
+
+## POST /api/card-plan
+
+Submit a request for one of the predefined website plans (Budget, Business, or Professional). This endpoint saves the request to MongoDB and sends an email notification with the plan details.
+
+### Request Body
+
+<ParamField path="name" type="string" required>
+  The full name of the person requesting the plan
+</ParamField>
+
+<ParamField path="email" type="string" required>
+  The email address for contact
+</ParamField>
+
+<ParamField path="phone" type="string" required>
+  The phone number for contact
+</ParamField>
+
+<ParamField path="websiteType" type="string" required>
+  The type of website being requested
+</ParamField>
+
+<ParamField path="planType" type="string" required>
+  The selected plan type. Must be one of: "Budget", "Business", or "Professional"
+</ParamField>
+
+<ParamField path="planPrice" type="number" required>
+  The price of the selected plan
+</ParamField>
+
+<ParamField path="budget" type="number" required>
+  The client's budget. Use 0 to indicate uncapped/no budget constraint
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Success message confirming the request submission
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error message if the request fails (only present on error)
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl -X POST http://localhost:3001/api/card-plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Michael Johnson",
+    "email": "michael.j@example.com",
+    "phone": "+1234567890",
+    "websiteType": "Portfolio",
+    "planType": "Professional",
+    "planPrice": 25000,
+    "budget": 30000
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:3001/api/card-plan', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Michael Johnson',
+    email: 'michael.j@example.com',
+    phone: '+1234567890',
+    websiteType: 'Portfolio',
+    planType: 'Professional',
+    planPrice: 25000,
+    budget: 30000
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+### Example Request with Uncapped Budget
+
+```bash cURL
+curl -X POST http://localhost:3001/api/card-plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Sarah Williams",
+    "email": "sarah.w@enterprise.com",
+    "phone": "+1987654321",
+    "websiteType": "E-commerce",
+    "planType": "Business",
+    "planPrice": 15000,
+    "budget": 0
+  }'
+```
+
+### Success Response
+
+```json
+{
+  "message": "Plan request submitted successfully"
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Failed to process plan request"
+}
+```
+
+## Email Notification
+
+When a card plan request is submitted, an email is sent to the configured recipient containing:
+
+- **Subject**: "New [planType] Plan Request from [name]"
+- **Name**: The submitted name
+- **Email**: The submitted email address
+- **Phone**: The submitted phone number
+- **Website Type**: The type of website requested
+- **Selected Plan**: The plan type (Budget, Business, or Professional)
+- **Plan Price**: Formatted as R[amount] with thousands separator
+- **Client Budget**: Formatted as R[amount] or "Uncapped/No Budget" if budget is 0
+
+## Data Storage
+
+The card plan request is saved to MongoDB with the following schema:
+
+```javascript
+{
+  name: String (required),
+  email: String (required),
+  phone: String (required),
+  websiteType: String (required),
+  planType: String (required, enum: ['Budget', 'Business', 'Professional']),
+  planPrice: Number (required),
+  budget: Number (required, default: 0),
+  createdAt: Date (auto-generated)
+}
+```
+
+## Plan Types
+
+The `planType` field must be one of three predefined values:
+
+- **Budget**: Entry-level plan for basic websites
+- **Business**: Mid-tier plan for growing businesses
+- **Professional**: Premium plan with advanced features
+
+## Budget Field
+
+The `budget` field has special meaning:
+
+- **0**: Indicates uncapped budget or no budget constraint
+- **> 0**: Indicates the client's specific budget limit in the same currency as planPrice
+
+In email notifications, a budget of 0 displays as "Uncapped/No Budget" while other values are formatted with the currency symbol.
+
+## Notes
+
+- All fields are required for submission
+- The `planType` is validated against the enum values in the database schema
+- Prices are displayed in South African Rand (R) in email notifications
+- The request is saved to MongoDB before sending the email notification
+- The `budget` field defaults to 0 if not provided

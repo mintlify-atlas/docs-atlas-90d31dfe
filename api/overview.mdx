@@ -1,0 +1,81 @@
+---
+title: 'API Overview'
+description: 'Overview of DevAurva API endpoints and authentication'
+---
+
+## Base URL
+
+The DevAurva API is hosted at:
+
+```
+http://localhost:3001
+```
+
+## Authentication
+
+Currently, the DevAurva API does not require authentication for public endpoints. All endpoints are accessible without API keys or tokens.
+
+## Request Format
+
+All API requests must:
+- Use the `POST` HTTP method
+- Include `Content-Type: application/json` header
+- Send data as JSON in the request body
+
+## Response Format
+
+All API responses are returned in JSON format.
+
+### Success Response
+
+Successful requests return a 200 status code with a JSON object:
+
+```json
+{
+  "message": "Success message describing the operation"
+}
+```
+
+For the contact endpoint, the response includes a code field:
+
+```json
+{
+  "code": 200,
+  "message": "Message sent successfully"
+}
+```
+
+### Error Response
+
+Failed requests return a 500 status code with a JSON object:
+
+```json
+{
+  "error": "Error message describing what went wrong"
+}
+```
+
+For the contact endpoint, errors include a code field:
+
+```json
+{
+  "code": 500,
+  "message": "Error processing your request"
+}
+```
+
+## Available Endpoints
+
+DevAurva provides three main API endpoints:
+
+1. **POST /api/contact** - Submit contact form messages
+2. **POST /api/custom-plan** - Submit custom website plan requests
+3. **POST /api/card-plan** - Submit predefined plan requests
+
+## Email Notifications
+
+All API endpoints trigger email notifications to the configured recipient address (`EMAIL_RECIPIENT` or `EMAIL_USER` from environment variables). These notifications are sent using Gmail via Nodemailer.
+
+## Data Persistence
+
+Plan requests (custom-plan and card-plan) are stored in MongoDB for record-keeping and future reference. Contact form submissions are only sent via email and not stored in the database.

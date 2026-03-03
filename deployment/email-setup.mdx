@@ -1,0 +1,267 @@
+---
+title: Email Setup
+description: Configure Nodemailer with Gmail for sending email notifications from DevAurva
+---
+
+## Overview
+
+DevAurva uses Nodemailer to send email notifications for contact form submissions, custom plan requests, and card plan selections. The application is configured to work with Gmail's SMTP service.
+
+## Email Dependencies
+
+The application uses **nodemailer** (v6.10.0) for email functionality.
+
+## Nodemailer Configuration
+
+The email transporter is configured in `server.js:27-34`:
+
+```javascript
+import nodemailer from 'nodemailer';
+
+// Create email transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+```
+
+## Gmail Setup for Nodemailer
+
+<Steps>
+
+### Enable 2-Factor Authentication
+
+1. Go to your [Google Account](https://myaccount.google.com/)
+2. Navigate to **Security**
+3. Enable **2-Step Verification**
+4. Follow the setup process to secure your account
+
+<Warning>
+App passwords are only available when 2-Step Verification is enabled. You cannot use your regular Gmail password with Nodemailer.
+</Warning>
+
+### Generate App Password
+
+1. Go to your [Google Account](https://myaccount.google.com/)
+2. Navigate to **Security** → **2-Step Verification**
+3. Scroll down to **App passwords**
+4. Click **App passwords**
+5. Select **Mail** as the app
+6. Select **Other (Custom name)** as the device
+7. Enter "DevAurva" or any descriptive name
+8. Click **Generate**
+9. Copy the 16-character password (remove spaces)
+
+### Configure environment variables
+
+Add your Gmail credentials to the `.env` file:
+
+```bash
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-16-char-app-password
+EMAIL_RECIPIENT=notifications@yourdomain.com
+```
+
+- **EMAIL_USER**: Your Gmail address
+- **EMAIL_PASS**: The 16-character app password (not your regular password)
+- **EMAIL_RECIPIENT**: Email address to receive notifications (optional, defaults to EMAIL_USER)
+
+</Steps>
+
+## Email Notification Types
+
+DevAurva sends three types of email notifications:
+
+### Contact Form Emails
+
+Sent when users submit the contact form (`server.js:37-74`):
+
+```javascript
+const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: process.env.EMAIL_RECIPIENT || process.env.EMAIL_USER,
+    subject: `New Contact Form Message from ${firstName}`,
+    text: `
+Name: ${firstName}
+Email: ${email}
+Message: ${message}
+    `,
+    html: `
+<h2>New Contact Form Submission</h2>
+<p><strong>Name:</strong> ${firstName}</p>
+<p><strong>Email:</strong> ${email}</p>
+<p><strong>Message:</strong></p>
+<p>${message}</p>
+    `
+};
+```
+
+**Includes:**
+- Sender's name and email
+- Message content
+- Both plain text and HTML formats
+
+### Custom Plan Request Emails
+
+Sent when users submit custom plan requests with selected features (`server.js:98-124`):
+
+**Includes:**
+- Client contact information
+- Company name and website type
+- Selected features with pricing
+- Total price calculation
+- Additional notes
+
+### Card Plan Request Emails
+
+Sent when users select predefined pricing plans (`server.js:155-169`):
+
+**Includes:**
+- Client contact information
+- Selected plan type (Starter/Professional/Enterprise)
+- Website type
+- Plan price and budget information
+
+## Email Recipient Configuration
+
+The recipient email uses a fallback pattern (`server.js:44,100`):
+
+```javascript
+to: process.env.EMAIL_RECIPIENT || process.env.EMAIL_USER
+```
+
+- If `EMAIL_RECIPIENT` is set, notifications go to that address
+- If not set, notifications are sent to `EMAIL_USER` (yourself)
+
+## Testing Email Setup
+
+<Steps>
+
+### Verify environment variables
+
+Ensure your `.env` file contains:
+
+```bash
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=xxxx xxxx xxxx xxxx
+EMAIL_RECIPIENT=recipient@example.com
+```
+
+### Start the server
+
+```bash
+node server.js
+```
+
+### Send a test email
+
+Submit a contact form through your application:
+
+1. Navigate to the contact page
+2. Fill in the form fields
+3. Submit the form
+4. Check server console for "Email sent successfully"
+5. Check the recipient inbox for the email
+
+### Verify email delivery
+
+Successful email delivery shows in the console:
+
+```bash
+Email sent successfully
+```
+
+The API responds with:
+
+```json
+{
+  "code": 200,
+  "message": "Message sent successfully"
+}
+```
+
+</Steps>
+
+## Troubleshooting
+
+### Authentication Failed
+
+If you see authentication errors:
+
+- Verify 2-Step Verification is enabled on your Google account
+- Ensure you're using an app password, not your regular Gmail password
+- Check that `EMAIL_USER` matches the Gmail account that generated the app password
+- Remove any spaces from the app password
+
+### Emails Not Sending
+
+If emails aren't being sent:
+
+- Check the server console for error messages
+- Verify your Gmail account isn't blocked or suspended
+- Ensure you haven't exceeded Gmail's sending limits (500 emails/day for free accounts)
+- Check spam/junk folders in the recipient's inbox
+
+### Invalid Credentials Error
+
+```bash
+Error: Invalid login: 535-5.7.8 Username and Password not accepted
+```
+
+**Solutions:**
+- Regenerate your app password
+- Ensure 2FA is enabled
+- Verify the email address is correct
+
+### Connection Timeout
+
+If emails timeout:
+
+- Check your network connectivity
+- Verify firewall isn't blocking SMTP connections
+- Ensure port 587 or 465 is accessible
+
+<Warning>
+**Security Best Practices:**
+
+- Never commit your app password to version control
+- Use app-specific passwords, never your main Gmail password
+- Rotate app passwords periodically
+- Revoke unused app passwords from your Google Account settings
+- For production, consider using dedicated email services like SendGrid or AWS SES
+- Monitor email sending activity for unusual patterns
+</Warning>
+
+## Gmail Sending Limits
+
+Be aware of Gmail's sending limits:
+
+- **Free Gmail accounts**: 500 emails per day
+- **Google Workspace**: 2,000 emails per day
+
+For high-volume applications, consider using:
+- SendGrid
+- AWS SES
+- Mailgun
+- Postmark
+
+## Production Considerations
+
+For production deployments:
+
+1. **Use a dedicated email service** - Gmail is suitable for development but not ideal for production
+2. **Implement rate limiting** - Prevent email spam and abuse
+3. **Add email queuing** - Handle bulk emails asynchronously
+4. **Monitor deliverability** - Track bounce rates and spam reports
+5. **Set up SPF/DKIM** - Improve email deliverability and prevent spoofing
+
+## Next Steps
+
+- Test all email notification types (contact, custom plans, card plans)
+- Configure email templates for better formatting
+- Set up email monitoring and logging
+- Consider migrating to a production email service
+- Implement email retry logic for failed sends

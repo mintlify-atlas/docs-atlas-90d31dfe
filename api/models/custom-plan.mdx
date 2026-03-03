@@ -1,0 +1,211 @@
+---
+title: "CustomPlan Model"
+description: "MongoDB schema for storing custom website plan submissions with selected features"
+---
+
+## Overview
+
+The `CustomPlan` model stores customer submissions for custom website plans. It captures customer information, selected features, and pricing details for custom website configurations.
+
+## Schema Definition
+
+The CustomPlan schema is defined using Mongoose and includes the following structure:
+
+```javascript
+import mongoose from 'mongoose';
+
+const customPlanSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    phone: {
+        type: String,
+        required: true
+    },
+    companyName: {
+        type: String,
+        required: false
+    },
+    websiteType: {
+        type: String,
+        required: true
+    },
+    features: [{
+        id: String,
+        name: String,
+        price: Number,
+        category: String
+    }],
+    totalPrice: {
+        type: Number,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    }
+});
+```
+
+## Schema Fields
+
+<ResponseField name="name" type="String" required>
+  Customer's full name
+</ResponseField>
+
+<ResponseField name="email" type="String" required>
+  Customer's email address for communication
+</ResponseField>
+
+<ResponseField name="phone" type="String" required>
+  Customer's phone number
+</ResponseField>
+
+<ResponseField name="companyName" type="String">
+  Optional company name if the plan is for a business
+</ResponseField>
+
+<ResponseField name="websiteType" type="String" required>
+  Type of website being requested (e.g., "E-commerce", "Portfolio", "Business")
+</ResponseField>
+
+<ResponseField name="features" type="Array<Object>">
+  Array of selected features for the custom plan. Each feature object contains:
+  
+  <Expandable title="Feature Object Structure">
+    <ResponseField name="id" type="String">
+      Unique identifier for the feature
+    </ResponseField>
+    
+    <ResponseField name="name" type="String">
+      Display name of the feature
+    </ResponseField>
+    
+    <ResponseField name="price" type="Number">
+      Price of the individual feature in Rands
+    </ResponseField>
+    
+    <ResponseField name="category" type="String">
+      Category the feature belongs to (e.g., "Design", "Functionality", "SEO")
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="totalPrice" type="Number" required>
+  Total price of all selected features combined (in Rands)
+</ResponseField>
+
+<ResponseField name="date" type="Date" default="Date.now">
+  Timestamp when the plan was submitted. Automatically set to current date/time if not provided
+</ResponseField>
+
+## Example Document
+
+```json
+{
+  "_id": "65f8a1b2c3d4e5f6a7b8c9d0",
+  "name": "John Smith",
+  "email": "john.smith@example.com",
+  "phone": "+27 11 123 4567",
+  "companyName": "Smith Enterprises",
+  "websiteType": "E-commerce",
+  "features": [
+    {
+      "id": "feat_001",
+      "name": "Custom Design",
+      "price": 5000,
+      "category": "Design"
+    },
+    {
+      "id": "feat_002",
+      "name": "Shopping Cart",
+      "price": 3000,
+      "category": "Functionality"
+    },
+    {
+      "id": "feat_003",
+      "name": "SEO Optimization",
+      "price": 2000,
+      "category": "SEO"
+    }
+  ],
+  "totalPrice": 10000,
+  "date": "2024-03-15T10:30:00.000Z",
+  "__v": 0
+}
+```
+
+## Usage in API
+
+The CustomPlan model is primarily used in the `/api/custom-plan` endpoint:
+
+### Creating a Custom Plan
+
+```javascript
+import CustomPlan from '../server/models/CustomPlan.js';
+
+// Create a new custom plan
+const customPlan = new CustomPlan({
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone,
+    companyName: req.body.companyName,
+    websiteType: req.body.websiteType,
+    features: req.body.features,
+    totalPrice: req.body.totalPrice,
+    date: new Date()
+});
+
+// Save to database
+const savedPlan = await customPlan.save();
+```
+
+### Request Example
+
+```bash
+curl -X POST https://api.devaurva.com/api/custom-plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Smith",
+    "email": "john.smith@example.com",
+    "phone": "+27 11 123 4567",
+    "companyName": "Smith Enterprises",
+    "websiteType": "E-commerce",
+    "features": [
+      {
+        "id": "feat_001",
+        "name": "Custom Design",
+        "price": 5000,
+        "category": "Design"
+      },
+      {
+        "id": "feat_002",
+        "name": "Shopping Cart",
+        "price": 3000,
+        "category": "Functionality"
+      }
+    ],
+    "totalPrice": 8000
+  }'
+```
+
+## Model Location
+
+Source file: `/server/models/CustomPlan.js`
+
+## Related Endpoints
+
+- [POST /api/custom-plan](/api/custom-plan) - Submit a custom plan request
+
+## Notes
+
+- The model uses Mongoose's `mongoose.models.CustomPlan` check to prevent model recompilation in serverless environments
+- When a custom plan is submitted, an email notification is automatically sent to the configured recipient
+- The `companyName` field is optional, allowing both individual and business submissions
+- All prices are stored in South African Rands (R)
+- The `features` array allows unlimited feature selections

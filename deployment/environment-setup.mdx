@@ -1,0 +1,133 @@
+---
+title: Environment Setup
+description: Configure environment variables and application settings for DevAurva
+---
+
+## Overview
+
+DevAurva requires several environment variables to be configured for proper operation. These variables control database connections, email notifications, and server settings.
+
+## Required Environment Variables
+
+The following environment variables must be set before running the application:
+
+### Database Configuration
+
+- **MONGODB_URI** - MongoDB connection string for database access
+
+### Email Configuration
+
+- **EMAIL_USER** - Gmail account email address for sending notifications
+- **EMAIL_PASS** - Gmail app password (not your regular password)
+- **EMAIL_RECIPIENT** - Email address to receive form submissions and notifications
+
+<Warning>
+Never commit your `.env` file to version control. Always add `.env` to your `.gitignore` file to prevent exposing sensitive credentials.
+</Warning>
+
+## Creating the .env File
+
+<Steps>
+
+### Create the environment file
+
+In your project root directory, create a new file named `.env`:
+
+```bash
+touch .env
+```
+
+### Add environment variables
+
+Open the `.env` file and add your configuration:
+
+```bash
+# MongoDB Configuration
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/devaurva?retryWrites=true&w=majority
+
+# Email Configuration (Gmail)
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-specific-password
+EMAIL_RECIPIENT=recipient@example.com
+```
+
+### Replace placeholder values
+
+Update each variable with your actual credentials:
+
+- Replace `username:password@cluster.mongodb.net` with your MongoDB connection details
+- Replace `your-email@gmail.com` with your Gmail address
+- Replace `your-app-specific-password` with your Gmail app password
+- Replace `recipient@example.com` with the email where you want to receive notifications
+
+</Steps>
+
+## Environment Variables Reference
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `MONGODB_URI` | String | Yes | Full MongoDB connection string including credentials and database name |
+| `EMAIL_USER` | String | Yes | Gmail account used for sending emails via Nodemailer |
+| `EMAIL_PASS` | String | Yes | Gmail app-specific password (requires 2FA enabled) |
+| `EMAIL_RECIPIENT` | String | Optional | Recipient email for notifications. Defaults to `EMAIL_USER` if not set |
+
+## Loading Environment Variables
+
+DevAurva uses the `dotenv` package to load environment variables. This is configured in `server.js:10`:
+
+```javascript
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+```
+
+The `dotenv.config()` call automatically loads variables from the `.env` file in your project root.
+
+## Verifying Setup
+
+To verify your environment variables are properly configured:
+
+<Steps>
+
+### Start the development server
+
+```bash
+node server.js
+```
+
+### Check console output
+
+You should see:
+
+```bash
+Connected to MongoDB
+Server running on port 3001
+```
+
+### Test connectivity
+
+If you see connection errors, verify:
+- MongoDB URI is correct and accessible
+- Email credentials are valid
+- All required environment variables are set
+
+</Steps>
+
+<Warning>
+**Security Best Practices:**
+
+- Never share your `.env` file or commit it to Git
+- Use app-specific passwords for Gmail (not your account password)
+- Rotate credentials regularly
+- Use different credentials for development and production
+- Ensure your MongoDB connection string uses strong passwords
+</Warning>
+
+## Next Steps
+
+After setting up your environment variables:
+
+1. [Configure your MongoDB database](/deployment/database-configuration)
+2. [Set up email notifications](/deployment/email-setup)
+3. Start your development server and test the application
